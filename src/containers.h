@@ -71,7 +71,10 @@ enum {
 	WGDEVICE_HAS_PRIVATE_KEY = 1U << 1,
 	WGDEVICE_HAS_PUBLIC_KEY = 1U << 2,
 	WGDEVICE_HAS_LISTEN_PORT = 1U << 3,
-	WGDEVICE_HAS_FWMARK = 1U << 4
+	WGDEVICE_HAS_FWMARK = 1U << 4,
+
+	WGDEVICE_HAS_OBFUSCATE_KEY = 1U << 16,
+	WGDEVICE_CLEAR_OBFUSCATE_KEY = 1U << 17
 };
 
 struct wgdevice {
@@ -85,6 +88,8 @@ struct wgdevice {
 
 	uint32_t fwmark;
 	uint16_t listen_port;
+
+	uint8_t obfuscate_key[WG_KEY_LEN];
 
 	struct wgpeer *first_peer, *last_peer;
 };

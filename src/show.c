@@ -202,7 +202,7 @@ static char *bytes(uint64_t b)
 static const char *COMMAND_NAME;
 static void show_usage(void)
 {
-	fprintf(stderr, "Usage: %s %s { <interface> | all | interfaces } [public-key | private-key | listen-port | fwmark | peers | preshared-keys | endpoints | allowed-ips | latest-handshakes | transfer | persistent-keepalive | dump]\n", PROG_NAME, COMMAND_NAME);
+	fprintf(stderr, "Usage: %s %s { <interface> | all | interfaces } [public-key | private-key | obfuscate-key | listen-port | fwmark | peers | preshared-keys | endpoints | allowed-ips | latest-handshakes | transfer | persistent-keepalive | dump]\n", PROG_NAME, COMMAND_NAME);
 }
 
 static void pretty_print(struct wgdevice *device)
@@ -216,6 +216,8 @@ static void pretty_print(struct wgdevice *device)
 		terminal_printf("  " TERMINAL_BOLD "public key" TERMINAL_RESET ": %s\n", key(device->public_key));
 	if (device->flags & WGDEVICE_HAS_PRIVATE_KEY)
 		terminal_printf("  " TERMINAL_BOLD "private key" TERMINAL_RESET ": %s\n", masked_key(device->private_key));
+	if (device->flags & WGDEVICE_HAS_OBFUSCATE_KEY)
+		terminal_printf("  " TERMINAL_BOLD "obfuscate key" TERMINAL_RESET ": %s\n", masked_key(device->obfuscate_key));
 	if (device->listen_port)
 		terminal_printf("  " TERMINAL_BOLD "listening port" TERMINAL_RESET ": %u\n", device->listen_port);
 	if (device->fwmark)
@@ -259,6 +261,7 @@ static void dump_print(struct wgdevice *device, bool with_interface)
 		printf("%s\t", device->name);
 	printf("%s\t", maybe_key(device->private_key, device->flags & WGDEVICE_HAS_PRIVATE_KEY));
 	printf("%s\t", maybe_key(device->public_key, device->flags & WGDEVICE_HAS_PUBLIC_KEY));
+	printf("%s\t", maybe_key(device->obfuscate_key, device->flags & WGDEVICE_HAS_OBFUSCATE_KEY));
 	printf("%u\t", device->listen_port);
 	if (device->fwmark)
 		printf("0x%x\n", device->fwmark);
@@ -304,6 +307,10 @@ static bool ugly_print(struct wgdevice *device, const char *param, bool with_int
 		if (with_interface)
 			printf("%s\t", device->name);
 		printf("%u\n", device->listen_port);
+	} else if (!strcmp(param, "obfuscate-key")) {
+		if (with_interface)
+			printf("%s\t", device->name);
+		printf("%s\n", maybe_key(device->obfuscate_key, device->flags & WGDEVICE_HAS_OBFUSCATE_KEY));
 	} else if (!strcmp(param, "fwmark")) {
 		if (with_interface)
 			printf("%s\t", device->name);

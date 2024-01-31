@@ -161,6 +161,11 @@ again:
 
 		if (dev->flags & WGDEVICE_HAS_PRIVATE_KEY)
 			mnl_attr_put(nlh, WGDEVICE_A_PRIVATE_KEY, sizeof(dev->private_key), dev->private_key);
+		if (dev->flags & WGDEVICE_CLEAR_OBFUSCATE_KEY)
+			flags |= WGDEVICE_F_CLEAR_OBFUSCATE_KEY;
+		if (dev->flags & WGDEVICE_HAS_OBFUSCATE_KEY) {
+			mnl_attr_put(nlh, WGDEVICE_A_OBFUSCATE_KEY, sizeof(dev->obfuscate_key), dev->obfuscate_key);
+		}
 		if (dev->flags & WGDEVICE_HAS_LISTEN_PORT)
 			mnl_attr_put_u16(nlh, WGDEVICE_A_LISTEN_PORT, dev->listen_port);
 		if (dev->flags & WGDEVICE_HAS_FWMARK)
@@ -423,6 +428,13 @@ static int parse_device(const struct nlattr *attr, void *data)
 		if (mnl_attr_get_payload_len(attr) == sizeof(device->private_key)) {
 			memcpy(device->private_key, mnl_attr_get_payload(attr), sizeof(device->private_key));
 			device->flags |= WGDEVICE_HAS_PRIVATE_KEY;
+		}
+		break;
+	case WGDEVICE_A_OBFUSCATE_KEY:
+		if (mnl_attr_get_payload_len(attr) == sizeof(device->obfuscate_key)) {
+			memcpy(device->obfuscate_key, mnl_attr_get_payload(attr), sizeof(device->obfuscate_key));
+			device->flags |= WGDEVICE_HAS_OBFUSCATE_KEY;
+			device->flags &= ~WGDEVICE_CLEAR_OBFUSCATE_KEY;
 		}
 		break;
 	case WGDEVICE_A_PUBLIC_KEY:

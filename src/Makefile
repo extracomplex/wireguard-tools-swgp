@@ -39,7 +39,11 @@ PLATFORM ?= $(shell uname -s | tr '[:upper:]' '[:lower:]')
 
 CFLAGS ?= -O3
 ifneq ($(wildcard uapi/$(PLATFORM)/.),)
+ifeq ($(PLATFORM),linux)
+CFLAGS += -I uapi/$(PLATFORM)
+else
 CFLAGS += -idirafter uapi/$(PLATFORM)
+endif
 endif
 CFLAGS += -std=gnu99 -D_GNU_SOURCE
 CFLAGS += -Wall -Wextra

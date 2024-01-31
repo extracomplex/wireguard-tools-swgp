@@ -450,6 +450,10 @@ static bool process_line(struct config_ctx *ctx, const char *line)
 			ret = parse_key(ctx->device->private_key, value);
 			if (ret)
 				ctx->device->flags |= WGDEVICE_HAS_PRIVATE_KEY;
+		} else if (key_match("ObfuscateKey")) {
+			ret = parse_key(ctx->device->obfuscate_key, value);
+			if (ret)
+				ctx->device->flags |= WGDEVICE_HAS_OBFUSCATE_KEY;
 		} else
 			goto error;
 	} else if (ctx->is_peer_section) {
@@ -523,7 +527,7 @@ bool config_read_init(struct config_ctx *ctx, bool append)
 		return false;
 	}
 	if (!append)
-		ctx->device->flags |= WGDEVICE_REPLACE_PEERS | WGDEVICE_HAS_PRIVATE_KEY | WGDEVICE_HAS_FWMARK | WGDEVICE_HAS_LISTEN_PORT;
+		ctx->device->flags |= WGDEVICE_REPLACE_PEERS | WGDEVICE_HAS_PRIVATE_KEY | WGDEVICE_HAS_FWMARK | WGDEVICE_HAS_LISTEN_PORT | WGDEVICE_CLEAR_OBFUSCATE_KEY;
 	return true;
 }
 
@@ -586,6 +590,19 @@ struct wgdevice *config_read_cmd(const char *argv[], int argc)
 			if (!parse_keyfile(device->private_key, argv[1]))
 				goto error;
 			device->flags |= WGDEVICE_HAS_PRIVATE_KEY;
+			argv += 2;
+			argc -= 2;
+		} else if (!strcmp(argv[0], "no-obfuscate") && argc >= 1 && !peer) {
+			device->flags |= WGDEVICE_CLEAR_OBFUSCATE_KEY;
+			device->flags &= ~WGDEVICE_HAS_OBFUSCATE_KEY;
+			memset(device->obfuscate_key, 0, sizeof(device->obfuscate_key));
+			argv += 1;
+			argc -= 1;
+		} else if (!strcmp(argv[0], "obfuscate") && argc >= 2 && !peer) {
+			if (!parse_keyfile(device->obfuscate_key, argv[1]))
+				goto error;
+			//device->flags &= ~WGDEVICE_CLEAR_OBFUSCATE_KEY;
+			device->flags |= WGDEVICE_CLEAR_OBFUSCATE_KEY | WGDEVICE_HAS_OBFUSCATE_KEY;
 			argv += 2;
 			argc -= 2;
 		} else if (!strcmp(argv[0], "peer") && argc >= 2) {
